@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import Web3 from "web3";
 import { abi } from "./abiContract.abi";
-import CssBaseline from "@mui/material/CssBaseline";
-import Container from "@mui/material/Container";
-import { Box, Button, Paper, Stack, styled } from "@mui/material";
+import { Paper, styled } from "@mui/material";
 import Tanjiro from "./image/Tanjiro-Kamado.jpg";
 import Muzan from "./image/Muzan-Kibutsuji.jpg";
 import Nezuko from "./image/Nezuko-Kamado.jpg";
@@ -18,11 +16,6 @@ declare global {
   }
 }
 
-interface getError {
-  code: number;
-  message: string;
-}
-
 function App() {
   const [web3, setWeb3] = useState<Web3 | null>(null);
   const [account, setAccount] = useState<string>("");
@@ -31,7 +24,11 @@ function App() {
   const [eventName, setEventName] = useState<string>("");
   const [eventArgs, setEventArgs] = useState<any>(null);
 
-  const [table, setTable] = useState<any[]>([]);
+  const [status, setStatus] = useState<string>("");
+  const [inputData, setInputData] = useState<string>("");
+  const [data, setData] = useState<any>(null);
+
+  const [table, setTable] = useState<any[any]>([]);
 
   useEffect(() => {
     const { ethereum } = window;
@@ -52,6 +49,12 @@ function App() {
             "0xba2143AB82d0B0e2D03b4Cd6B3dDa6Fb9Df6A594"
           );
           setContract(contractInstance);
+          contractInstance.methods
+            .getOwnerCharacter()
+            .call((err: any, result: any) => {
+              console.log(result);
+              setTable(result);
+            });
         } catch (error: any) {
           if (error.code === 4001) {
             console.error("please Connect MetaMask");
@@ -62,25 +65,15 @@ function App() {
       }
     }
 
-    async function listTable() {
-      if (contract) {
-        contract.methods.getOwnerCharacter().call((err: any, result: any) => {
-          setTable(result);
-        });
-      }
-    }
-
-    connectToWeb3();
-    listTable();
-  }, []);
-
-  function listTable() {
-    if (contract) {
-      contract.methods.getOwnerCharacter().call((err: any, result: any) => {
-        console.table(result);
+    async function load() {
+      await connectToWeb3().then(() => {
+        setStatus("Ready!");
       });
     }
-  }
+
+    load();
+  }, []);
+
   async function submit(nameOfCharacter: string, price: string) {
     if (contract) {
       // will add name account and Date Time in function
@@ -113,16 +106,28 @@ function App() {
     }
   }
 
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: "center",
-    color: theme.palette.text.secondary,
-  }));
+  function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setInputData(event.target.value);
+  }
+
+  function checkDataIsOk() {
+    contract.methods
+      .checkCharacter(inputData)
+      .call((error: any, result: any) => {
+        console.log(result);
+        if (!error) {
+          if (result.toString() == "true") {
+            setData("Have Owner");
+          } else {
+            setData("Haven't Owner");
+          }
+        }
+      });
+  }
 
   return (
     <div>
+      {/* Header */}
       <section className=" flex justify-center p-10 bg-white">
         <div className="flex-col justify-center bg-white-100">
           <div className="flex-row my-auto text-center">
@@ -136,6 +141,40 @@ function App() {
               This website run by web3.js version{" "}
               {web3 !== null ? web3.version : "Not found web3.js"} and react app{" "}
             </p>
+          </div>
+          <div className="flex-row my-auto text-center">
+            <p className="text-gray-700">You connected by wallet : {account}</p>
+          </div>
+        </div>
+      </section>
+      {/* Enter Data */}
+      <section className=" flex justify-center p-10 bg-gray-200">
+        <div className="flex-col justify-center bg-white-100">
+          <div className="flex-row my-auto text-center">
+            <p className="text-4xl text-black">Status : {status}</p>
+          </div>
+          <div className="flex-row my-auto text-center">
+            <input
+              type="text"
+              name="name"
+              id="name"
+              placeholder="Enter your name"
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            />
+          </div>
+          <div className="flex items-center justify-center">
+            <button
+              className="text-sm space-x-1.5 rounded-lg bg-blue-500 px-4 py-1.5 text-white duration-100 hover:bg-blue-600"
+              onClick={() => {
+                checkDataIsOk();
+              }}
+            >
+              Check Character is have owner
+            </button>
+          </div>
+          <div className="flex-row my-auto text-center">
+            <p className="text-xl text-black">Haved ? : {data}</p>
           </div>
         </div>
       </section>
@@ -330,40 +369,37 @@ function App() {
       </section>
 
       <div className=" flex justify-center p-10 bg-white">
-        <table className="table-auto border-collapse border border-slate-400">
+        <table className="items-center bg-transparent w-full border-collapse">
           <thead>
             <tr>
-              <th className="border border-slate-300">Account</th>
-              <th className="border border-slate-300">Character</th>
-              <th className="border border-slate-300">Time</th>
+              <th className="px-6 bg-blueGray-50 text-blueGray-500 align-middle border border-solid border-blueGray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                Account
+              </th>
+              <th className="px-6 bg-blueGray-50 text-blueGray-500 align-middle border border-solid border-blueGray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                Character
+              </th>
+              <th className="px-6 bg-blueGray-50 text-blueGray-500 align-middle border border-solid border-blueGray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                Time
+              </th>
             </tr>
           </thead>
           <tbody>
-            {
-              table.map((element : any) => (
-                <tr>
-                  <td>
-                    {element[0]}
-                  </td>
-                  <td>
-                    {element[1]}
-                  </td>
-                  <td>
-                    {element[2]}
-                  </td>
-                </tr>
-              ))
-            }
+            {table.map((element: any, index: number) => (
+              <tr key={index}>
+                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                  {element.owner}
+                </td>
+                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                  {element.character}
+                </td>
+                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                  {element.time}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-
-      {web3 && <p>Web3.js version: {web3.version}</p>}
-      {account && <p>Connected account: {account}</p>}
-      {/* <button onClick={submit}>Test Button</button> */}
-      <button onClick={listTable}>table</button>
-      <p>Event name: {eventName}</p>
-      <p>Event arguments: {JSON.stringify(table)}</p>
     </div>
   );
 }

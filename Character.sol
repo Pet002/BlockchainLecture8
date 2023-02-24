@@ -22,7 +22,7 @@ contract ProofOfCharacter {
         string owner
     );
 
-    event purchaseError(address from, string text, string reason);
+    event purchaseError(address from, string character, string reason);
 
     function recordProof(bytes32 proof) private {
         listCharacter[proof] = true;
@@ -33,6 +33,21 @@ contract ProofOfCharacter {
         string memory owner,
         string memory time
     ) public payable {
+        // if character is haved owner
+        if (listCharacter[hashing(character)]) {
+            emit purchaseError(
+                msg.sender,
+                character,
+                "This character is have owner!!"
+            );
+
+            //---refund back to the sender---
+            payable(msg.sender).transfer(msg.value);
+
+            //---exit the function---
+            return;
+        }
+
         // Tanjiro Kamado  0.003
         if (keccak256(bytes("Tanjiro Kamado")) == keccak256(bytes(character))) {
             if (msg.value != 0.003 ether) {
@@ -115,11 +130,11 @@ contract ProofOfCharacter {
                 //---exit the function---
                 return;
             }
-        }else{
-        emit purchaseError(msg.sender, character, "Not Found Character");
-        payable(msg.sender).transfer(msg.value);
-        return;
-    }
+        } else {
+            emit purchaseError(msg.sender, character, "Not Found Character");
+            payable(msg.sender).transfer(msg.value);
+            return;
+        }
 
         recordProof(hashing(character));
 
@@ -136,12 +151,15 @@ contract ProofOfCharacter {
     }
 
     // check name of student in this class
-    function checkCharacter(string memory character) public view returns (bool) {
+    function checkCharacter(string memory character)
+        public
+        view
+        returns (bool)
+    {
         return listCharacter[hashing(character)];
     }
 
-
-    function getOwnerCharacter() public view returns(Owner[] memory){
-    return owners;
-  }
+    function getOwnerCharacter() public view returns (Owner[] memory) {
+        return owners;
+    }
 }
