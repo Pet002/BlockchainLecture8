@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Web3 from "web3";
 import { abi } from "./abiContract.abi";
+import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
+import { Paper, Stack, styled } from "@mui/material";
+import Tanjiro from './image/Tanjiro-Kamado.jpg';
+import Muzan from './image/Muzan-Kibutsuji.jpg';
+import Nezuko from './image/Nezuko-Kamado.jpg';
+import Inosuke from './image/Inosuke-Hashibira.jpg';
+import Zenitsu from './image/Zenitsu-Agatsuma.jpg';
+
 
 declare global {
   interface Window {
@@ -70,18 +79,18 @@ function App() {
           new Date().toLocaleTimeString("en-US")
         )
         .send({ from: account, value: web3?.utils.toWei("0.002", "ether") }); // in payable will use send method to send eth to smart contract....
-      
+
       // Liste for the NameAdded event
-        contract.once("NameAdded", {}, function (error: any, event: any) {
+      contract.once("NameAdded", {}, function (error: any, event: any) {
         if (!error) {
           console.log(event);
           setEventName(event.event);
           setEventArgs(event.returnValues);
-        }else{
+        } else {
           console.log(error)
         }
       });
-      
+
       // Listen purchase Error Event
       contract.once("purchaseError", {}, function (error: any, event: any) {
         if (!error) {
@@ -91,8 +100,30 @@ function App() {
       });
     }
   }
+
+  const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
+  }));
+
   return (
     <div>
+      <CssBaseline />
+      <Container maxWidth="lg" sx={{ bgcolor: '#cfe8fc', height: '65vh', mt: 5, pt: 2 }}>
+
+        <Stack direction="row" spacing={8} justifyContent="center">
+          <Item>Item 1 <img src={Tanjiro} /></Item>
+          <Item>Item 2 <img src={Zenitsu} /></Item>
+          <Item>Item 3 <img src={Inosuke} /></Item>
+          <Item>Item 4 <img src={Muzan} /></Item>
+          <Item>Item 5 <img src={Nezuko} /></Item>
+        </Stack>
+
+      </Container>
+
       {web3 && <p>Web3.js version: {web3.version}</p>}
       {account && <p>Connected account: {account}</p>}
       <button onClick={submit}>Test Button</button>
