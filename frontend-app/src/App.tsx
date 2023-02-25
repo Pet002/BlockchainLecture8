@@ -23,6 +23,7 @@ function App() {
 
   const [eventName, setEventName] = useState<string>("");
   const [eventArgs, setEventArgs] = useState<any>(null);
+  
 
   const [status, setStatus] = useState<string>("");
   const [inputData, setInputData] = useState<string>("");
@@ -46,7 +47,7 @@ function App() {
           // Load Contract
           const contractInstance = new web3Instance.eth.Contract(
             abi,
-            "0xba2143AB82d0B0e2D03b4Cd6B3dDa6Fb9Df6A594"
+            "0xD53b24Ee2E8403Ac3d48492706680C2ebB2584d0"
           );
           setContract(contractInstance);
           contractInstance.methods
@@ -91,9 +92,16 @@ function App() {
           console.log(event);
           setEventName(event.event);
           setEventArgs(event.returnValues);
+          contract.methods
+            .getOwnerCharacter()
+            .call((err: any, result: any) => {
+              console.log(result);
+              setTable(result);
+            });
         } else {
           console.log(error);
         }
+        
       });
 
       // Listen purchase Error Event
@@ -152,6 +160,9 @@ function App() {
         <div className="flex-col justify-center bg-white-100">
           <div className="flex-row my-auto text-center">
             <p className="text-4xl text-black">Status : {status}</p>
+          </div>
+          <div className="flex-row my-auto text-center">
+            <p className="text-2xl text-black">BuyStatus : {(eventName === "NameAdded") ? (eventArgs.owner) :( (eventName === "purchaseError") ? (eventArgs.reason) : "")}</p>
           </div>
           <div className="flex-row my-auto text-center">
             <input
